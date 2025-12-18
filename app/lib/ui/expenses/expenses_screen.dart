@@ -28,14 +28,39 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     ),
   ];
 
-  void onAddClicked(BuildContext context)  {
-    showModalBottomSheet<Expense>(
+  void onAddClicked(BuildContext context) async {
+      final newExpense = await showModalBottomSheet<Expense>(
       isScrollControlled: false,
       context: context,
       builder: (c) => Center(child: ExpenseForm()),
     );
+    // // TODO YOUR CODE HERE done
+    if(newExpense == null ) return;
 
-    // TODO YOUR CODE HERE
+    setState(() {
+      _expenses.add(newExpense);
+    });
+
+
+  }
+
+  void _removeExpense(Expense expense){
+    final index = _expenses.indexOf(expense);
+    setState(() {
+      _expenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Expense removed"),
+        duration: Duration(seconds: 10),
+        action: SnackBarAction(label: 'Undo', onPressed: (){
+          setState(() {
+            _expenses.insert(index, expense);
+          });
+        }),
+      )
+    );
   }
 
   @override
@@ -52,9 +77,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         backgroundColor: Colors.blue[700],
         title: const Text('Ronan-The-Best Expenses App'),
       ),
+
+      //done dismissible
+      
       body: ListView.builder(
         itemCount: _expenses.length,
-        itemBuilder: (context, index) => ExpenseItem(expense: _expenses[index]),
+        itemBuilder: (context, index) => Dismissible(
+          key: ValueKey(_expenses[index].id),
+          onDismissed: (direction){
+            _removeExpense(_expenses[index]);
+          }, 
+          child: ExpenseItem(expense: _expenses[index]),
+        )
+    
       ),
     );
   }
